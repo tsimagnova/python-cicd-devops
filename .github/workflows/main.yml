@@ -1,4 +1,4 @@
-name: Build and Test
+name: Build, Test and Deploy
 
 on:
  push:
@@ -6,7 +6,7 @@ on:
       main
 
 jobs:
-  build_and_test:
+  test:
     runs-on: ubuntu-latest
 
     env:
@@ -29,7 +29,7 @@ jobs:
 
     - name: Run Tests
       run: make test
-  build_and_push_image:
+  build:
     runs-on: ubuntu-latest
 
     env:
@@ -50,4 +50,21 @@ jobs:
         run: |
           docker build -t $IMAGE_NAME:$IMAGE_TAG .
           docker push $IMAGE_NAME:$IMAGE_TAG
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Set up AWS Key
+        run: |
+          echo "$AWS_KEY" > deploy_key
+          chmod 600 deploy_key
+
+      - name: Deploy to Remote Server
+        run: |
+          ssh -o StrictHostKeyChecking=no -i deploy_key  ubuntu@ec2-18-220-188-109.us-east-2.compute.amazonaws.com "
+            docker login -u ${{ secrets.REGISTRY_USER }} -p ${{ secrets.REGISTRY_PASS }} &&
+            docker ps -aq | xargs docker stop | xargs docker rm &&
+            docker run -d -p 5000:5000 $IMAGE_NAME:$IMAGE_TAG"         
   
