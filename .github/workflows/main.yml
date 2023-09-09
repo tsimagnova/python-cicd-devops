@@ -58,7 +58,7 @@ jobs:
 
       - name: Set up AWS Key
         run: |
-          chmod 400 ${{ secrets.SSH_AWS }}
+          chmod 600 ${{ secrets.SSH_AWS }}
 
       - name: Deploy to Remote Server
         run: |
