@@ -56,9 +56,13 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v2
 
+      - name: Set up SSH Key
+        run: echo ${{ secrets.AWS_KEY }} > deploy_key.pem && chmod 600 deploy_key.pem
+
+
       - name: Deploy to Remote Server
         run: |
-          sudo ssh  -o StrictHostKeyChecking=no -i "${{ secrets.AWS_KEY }}" ubuntu@ec2-18-220-188-109.us-east-2.compute.amazonaws.com "
+          ssh  -o StrictHostKeyChecking=no -i deploy_key.pem ubuntu@ec2-18-220-188-109.us-east-2.compute.amazonaws.com "
             docker login -u ${{ secrets.REGISTRY_USER }} -p ${{ secrets.REGISTRY_PASS }} &&
             docker ps -aq | xargs docker stop | xargs docker rm &&
             docker run -d -p 5000:5000 $IMAGE_NAME:$IMAGE_TAG"         
