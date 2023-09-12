@@ -66,9 +66,9 @@ jobs:
     - name: permission
       run: |
        echo "${{ secrets.AWS_PRIVATE_SSH_KEY }}" > key.pem
-       sudo chmod 600 key.pem       
+       chmod 600 key.pem       
 
     - name: Deploy to EC2
       run: |
-          sudo ssh -T -o StrictHostKeyChecking=no -i key.pem ubuntu@ec2-3-22-27-235.us-east-2.compute.amazonaws.com   
+         ssh -T -o StrictHostKeyChecking=no -i key.pem ubuntu@ec2-3-22-27-235.us-east-2.compute.amazonaws.com   
   
