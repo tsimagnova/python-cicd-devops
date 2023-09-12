@@ -4,7 +4,8 @@ on:
  push:
    branches:
       main
-
+env:
+  AWS_PRIVATE_SSH_KEY: ${{ secrets.AWS_PRIVATE_SSH_KEY }}  
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -63,8 +64,13 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-2
+          
+    - name: permission
+      run: |
+       echo "${{ env.AWS_PRIVATE_SSH_KEY }}" > key.pem
+       chmod 600 key.pem       
 
     - name: Deploy to EC2
       run: |
-          ssh -o StrictHostKeyChecking=no -i cicd.pem ubuntu@ec2-3-22-27-235.us-east-2.compute.amazonaws.com   
+          ssh -o StrictHostKeyChecking=no -i key.pem ubuntu@ec2-3-22-27-235.us-east-2.compute.amazonaws.com   
   
