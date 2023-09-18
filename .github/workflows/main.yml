@@ -70,5 +70,5 @@ jobs:
 
     - name: Deploy to EC2
       run: |
-         ssh -T -o StrictHostKeyChecking=yes -i key.pem ec2-18-217-21-20.us-east-2.compute.amazonaws.com  
+         ssh -i key.pem -o StrictHostKeyChecking=no ubuntu@ec2-3-17-61-79.us-east-2.compute.amazonaws.com 
   
