@@ -72,7 +72,6 @@ jobs:
       run: |
          ssh -i key.pem -o StrictHostKeyChecking=no ubuntu@ec2-3-17-61-79.us-east-2.compute.amazonaws.com "
          docker login -u ${{ secrets.REGISTRY_USER }} -p ${{ secrets.REGISTRY_PASS }} &&
-         docker ps -aq | xargs docker stop | xargs docker rm &&
          docker run -dp 5000:5000 $IMAGE_NAME:$IMAGE_TAG"
            
   
