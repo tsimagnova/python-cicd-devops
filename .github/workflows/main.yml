@@ -56,5 +56,5 @@ jobs:
          ssh -o StrictHostKeyChecking=no -i key.pem ubuntu@ec2-52-14-209-188.us-east-2.compute.amazonaws.com 'sudo docker rm ${{ secrets.IMAGE_NAME }}:${{ secrets.IMAGE_TAG }} || true'
       - name: Run new container
         run: |
-         ssh -o StrictHostKeyChecking=no -i key.pem ubuntu@ec2-52-14-209-188.us-east-2.compute.amazonaws.com 'sudo docker run -d --name ${{ secrets.IMAGE_NAME }}:${{ secrets.IMAGE_TAG }}  -p 5000:5000 ${{ secrets.IMAGE_NAME }}:${{ secrets.IMAGE_TAG }}'
+         ssh -o StrictHostKeyChecking=no -i key.pem ubuntu@ec2-52-14-209-188.us-east-2.compute.amazonaws.com 'sudo docker run -d -p 5000:5000 ${{ secrets.IMAGE_NAME }}:${{ secrets.IMAGE_TAG }}'
 
