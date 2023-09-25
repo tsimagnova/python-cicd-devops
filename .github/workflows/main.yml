@@ -52,8 +52,8 @@ jobs:
          ssh -o StrictHostKeyChecking=no -i key.pem ubuntu@ec2-52-14-209-188.us-east-2.compute.amazonaws.com 'sudo docker pull ${{ secrets.IMAGE_NAME }}:${{ secrets.IMAGE_TAG }}'
       - name: Stop running container
         run: |
-         ssh -o StrictHostKeyChecking=no -i key.pem ubuntu@ec2-52-14-209-188.us-east-2.compute.amazonaws.com 'docker stop ${{ secrets.IMAGE_NAME }}:${{ secrets.IMAGE_TAG }} || true'
-         ssh -o StrictHostKeyChecking=no -i key.pem ubuntu@ec2-52-14-209-188.us-east-2.compute.amazonaws.com 'docker rm ${{ secrets.IMAGE_NAME }}:${{ secrets.IMAGE_TAG }} || true'
+         ssh -o StrictHostKeyChecking=no -i key.pem ubuntu@ec2-52-14-209-188.us-east-2.compute.amazonaws.com 'docker stop demo-app || true'
+         ssh -o StrictHostKeyChecking=no -i key.pem ubuntu@ec2-52-14-209-188.us-east-2.compute.amazonaws.com 'docker rm demo-app || true'
       - name: Run new container
         run: |
          ssh -o StrictHostKeyChecking=no -i key.pem ubuntu@ec2-52-14-209-188.us-east-2.compute.amazonaws.com 'docker run -d --name demo-app -p 5000:5000 ${{ secrets.IMAGE_NAME }}:${{ secrets.IMAGE_TAG }}'
