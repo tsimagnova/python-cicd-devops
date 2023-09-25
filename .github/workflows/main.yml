@@ -1,77 +1,56 @@
-name: Build, Test and Deploy
-
+name: Build on DockerHub and Deploy to AWS
 on:
- push:
-   branches:
-      main
+  push:
+    branches:
+      - main 
 jobs:
-  test:
+  run_tests:
     runs-on: ubuntu-latest
-
-    env:
-      IMAGE_NAME: tsimagnova/demo-app
-      IMAGE_TAG: python-app-1.0
     
     steps:
-    - name: Checkout code
+    - name: Checkout du code source
       uses: actions/checkout@v2
 
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.9
-
-    - name: Install make
+    - name: Exécuter les tests
       run: |
-        sudo apt-get update
-        sudo apt-get install make
-
-    - name: Run Tests
-      run: make test
-  build:
+        docker run --rm -v $PWD:/app -w /app python:3.9-slim-buster /bin/bash -c "apt-get update && apt-get install -y make && make test"
+  docker:
     runs-on: ubuntu-latest
-
-    env:
-      IMAGE_NAME: tsimagnova/demo-app
-      IMAGE_TAG: python-app-1.0
-      DOCKER_TLS_CERTDIR: "/certs"
-
     steps:
-      - name: Check out code
-        uses: actions/checkout@v2
-
-      - name: Set up Docker
-        uses: docker/setup-buildx-action@v1  
-      - name: Login to Docker Registry
-        run: docker login -u ${{ secrets.REGISTRY_USER }} -p ${{ secrets.REGISTRY_PASS }} 
-
-      - name: Build and Push Docker Image
-        run: |
-          docker build -t $IMAGE_NAME:$IMAGE_TAG .
-          docker push $IMAGE_NAME:$IMAGE_TAG
+      -
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      -
+        name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.REGISTRY_USER }}
+          password: ${{ secrets.REGISTRY_PASS }}
+      -
+        name: Build and push
+        uses: docker/build-push-action@v4
+        with:
+          push: true
+          tags: ${{ secrets.IMAGE_NAME}}:${{ secrets.IMAGE_TAG}}
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-   
-    - name: Set up AWS CLI
-      uses: aws-actions/configure-aws-credentials@v1
-      with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-2
-          
-    - name: permission
-      run: |
-       echo "${{ secrets.AWS_PRIVATE_SSH_KEY }}" > key.pem
-       chmod 600 key.pem       
-    - name: Deploy to EC2
-      run: |
-         ssh -i key.pem -o StrictHostKeyChecking=no ubuntu@ec2-52-14-209-188.us-east-2.compute.amazonaws.com "
-         docker login -u ${{ secrets.REGISTRY_USER }} -p ${{ secrets.REGISTRY_PASS }} &&
-         docker ps -aq | xargs docker stop | xargs docker rm &&
-         docker run -d -p 5000:5000 $IMAGE_NAME:$IMAGE_TAG "
-           
-  
+      - name: Checkout du code source
+        uses: actions/checkout@v2
+
+      - name: Préparation de la clé SSH
+        run: |
+          echo -n "${{ secrets.AWS_PRIVATE_SSH_KEY }}" > ssh_key.pem 
+          chmod 600 ssh_key.pem
+
+      - name: Déploiement
+        run: |
+          ssh -o StrictHostKeyChecking=no -i ssh_key.pem ubuntu@ec2-52-14-209-188.us-east-2.compute.amazonaws.com "
+          docker login -u ${{ secrets.REGISTRY_USER }} -p ${{ secrets.REGISTRY_PASS }} &&
+          docker ps -aq | xargs docker stop | xargs docker rm &&
+          docker run -d -p 5000:5000 ${{ secrets.IMAGE_NAME }}:${{ secrets.IMAGE_TAG }}"
+
